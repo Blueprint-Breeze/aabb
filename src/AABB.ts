@@ -12,4 +12,13 @@ export default class AABB<Is3D = false> {
     this.min = min
     this.max = max
   }
+
+  // other
+  clone (): AABB<Is3D> {
+    return new AABB(this.min, this.max)
+  }
+
+  toString (): string {
+    return `AABB(${JSON.stringify(this.min)}, ${JSON.stringify(this.max)})`
+  }
 }
