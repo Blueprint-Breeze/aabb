@@ -1,10 +1,10 @@
 {
-  "name": "ts-lib-template",
+  "name": "@blueprint-breeze/aabb",
   "version": "0.0.0",
   "license": "MIT",
   "author": "Pengsha Ying <yingfusheng@foxmail.com>",
-  "description": "😎 Awesome typescript library template",
-  "repository": "git@github.com:yingpengsha/ts-lib-template.git",
+  "description": "axis-aligned bounding box",
+  "repository": "git@github.com:Blueprint-Breeze/aabb.git",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
