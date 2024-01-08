@@ -13,6 +13,11 @@ export default class AABB<Is3D = false> {
     this.max = max
   }
 
+  // factory
+  static from<Is3D = false> (min: Point<Is3D>, max: Point<Is3D>): AABB<Is3D> {
+    return new AABB(min, max)
+  }
+
   // other
   clone (): AABB<Is3D> {
     return new AABB(this.min, this.max)
