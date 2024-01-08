@@ -1,1 +1,9 @@
-export { default, default as AABB, type Point } from './AABB'
+export {
+  default,
+  default as AABB,
+  AABB2D,
+  AABB3D,
+  type Point,
+  type Point2D,
+  type Point3D
+} from './AABB'
