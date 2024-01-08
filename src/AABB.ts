@@ -22,6 +22,48 @@ class AABB<P extends Point<boolean> = Point2D> {
     this.max = max
   }
 
+  // geometry
+  get is2D (): boolean {
+    return !('z' in this.min)
+  }
+
+  get is3D (): boolean {
+    return !this.is2D
+  }
+
+  // length on x axis
+  get width (): number {
+    return this.max.x - this.min.x
+  }
+
+  // length on y axis
+  get height (): number {
+    return this.max.y - this.min.y
+  }
+
+  // length on z axis, 0 if 2D
+  get depth (): number {
+    return this.is3D ? (this.max as Point3D).z - (this.min as Point3D).z : 0
+  }
+
+  // area, width * height for 2d, 2 * (xy + xz + yz) for 3d
+  get area (): number {
+    if (this.is2D) {
+      return this.width * this.height
+    } else {
+      return 2 * (this.width * this.height + this.width * this.depth + this.height * this.depth)
+    }
+  }
+
+  // volume, 0 if 2D
+  get volume (): number {
+    if (this.is2D) {
+      return 0
+    } else {
+      return this.width * this.height * this.depth
+    }
+  }
+
   // factory
   static from (min: Point2D, max: Point2D): AABB<Point2D>
   static from (min: Point3D, max: Point3D): AABB<Point3D>
