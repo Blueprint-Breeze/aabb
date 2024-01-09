@@ -86,9 +86,11 @@ class AABB<P extends Point<boolean> = Point2D> {
   }
 }
 
+export type AABBType<P extends Point<boolean> = Point2D> = AABB<P>
+
 // workaround from https://github.com/microsoft/TypeScript/issues/35387#issuecomment-559152671
 // subscribe feature to https://github.com/microsoft/TypeScript/issues/40451#issue-696949269
-export default AABB as {
+const OVERRIDE_AABB = AABB as {
   new (min: Point2D, max: Point2D): AABB<Point2D>
   new (min: Point3D, max: Point3D): AABB<Point3D>
 } & Omit<typeof AABB, 'new'>
@@ -96,9 +98,11 @@ export default AABB as {
 export const AABB2D = AABB as {
   new (min: Point2D, max: Point2D): AABB<Point2D>
   from: (min: Point2D, max: Point2D) => AABB<Point2D>
-} & Omit<typeof AABB, 'new' | 'from'>
+} & Omit<typeof OVERRIDE_AABB, 'new' | 'from'>
 
 export const AABB3D = AABB as {
   new (min: Point3D, max: Point3D): AABB<Point3D>
   from: (min: Point3D, max: Point3D) => AABB<Point3D>
-} & Omit<typeof AABB, 'new' | 'from'>
+} & Omit<typeof OVERRIDE_AABB, 'new' | 'from'>
+
+export default OVERRIDE_AABB

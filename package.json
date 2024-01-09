@@ -26,9 +26,9 @@
   "scripts": {
     "dev": "tsup --watch --sourcemap --env.NODE_ENV development",
     "build": "tsup --env.NODE_ENV production",
-    "test": "vitest run --passWithNoTests",
-    "test:dev": "vitest --passWithNoTests",
-    "test:dev-ui": "vitest --ui --passWithNoTests",
+    "test": "vitest run --passWithNoTests --typecheck",
+    "test:dev": "vitest --passWithNoTests --typecheck",
+    "test:dev-ui": "vitest --ui --passWithNoTests --typecheck",
     "lint": "eslint \"**/*.{js,ts}\"",
     "release": "bump --commit --push --tag && pnpm publish",
     "reset": "npx rimraf ./node_modules && pnpm install",
@@ -38,7 +38,7 @@
     "@jsdevtools/version-bump-prompt": "^6.1.0",
     "@types/node": "^20.10.6",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@vitest/ui": "^0.32.4",
+    "@vitest/ui": "^1.1.3",
     "eslint": "^8.56.0",
     "eslint-config-standard-with-typescript": "^35.0.0",
     "eslint-define-config": "^1.24.1",
@@ -51,6 +51,6 @@
     "tsup": "^7.2.0",
     "typescript": "~5.0.4",
     "vite-tsconfig-paths": "^4.2.3",
-    "vitest": "^0.32.4"
+    "vitest": "^1.1.3"
   }
 }
