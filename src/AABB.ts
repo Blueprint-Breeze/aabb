@@ -23,12 +23,12 @@ class AABB<P extends Point<boolean> = Point2D> {
   }
 
   // geometry
-  get is2D (): boolean {
-    return !('z' in this.min)
+  get is2D (): this extends AABB<Point2D> ? true : false {
+    return !('z' in this.min) as this extends AABB<Point2D> ? true : false
   }
 
-  get is3D (): boolean {
-    return !this.is2D
+  get is3D (): this extends AABB<Point3D> ? true : false {
+    return !this.is2D as this extends AABB<Point3D> ? true : false
   }
 
   // length on x axis
@@ -51,7 +51,12 @@ class AABB<P extends Point<boolean> = Point2D> {
     if (this.is2D) {
       return this.width * this.height
     } else {
-      return 2 * (this.width * this.height + this.width * this.depth + this.height * this.depth)
+      return (
+        2 *
+        (this.width * this.height +
+          this.width * this.depth +
+          this.height * this.depth)
+      )
     }
   }
 
