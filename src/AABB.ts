@@ -22,15 +22,7 @@ class AABB<P extends Point<boolean> = Point2D> {
     this.max = max
   }
 
-  // geometry
-  get is2D (): this extends AABB<Point2D> ? true : false {
-    return !('z' in this.min) as this extends AABB<Point2D> ? true : false
-  }
-
-  get is3D (): this extends AABB<Point3D> ? true : false {
-    return !this.is2D as this extends AABB<Point3D> ? true : false
-  }
-
+  // ======================== geometry ========================
   // length on x axis
   get width (): number {
     return this.max.x - this.min.x
@@ -46,37 +38,75 @@ class AABB<P extends Point<boolean> = Point2D> {
     return this.is3D ? (this.max as Point3D).z - (this.min as Point3D).z : 0
   }
 
-  // area, width * height for 2d, 2 * (xy + xz + yz) for 3d
-  get area (): number {
-    if (this.is2D) {
-      return this.width * this.height
+  static is2D (input: unknown): input is AABB<Point2D> {
+    return input instanceof AABB && !('z' in input.min) && !('z' in input.max)
+  }
+
+  get is2D (): this extends AABB<Point2D> ? true : false {
+    return (!('z' in this.min) &&
+      !('z' in this.max)) as this extends AABB<Point2D> ? true : false
+  }
+
+  static is3D (input: unknown): input is AABB<Point3D> {
+    return input instanceof AABB && 'z' in input.min && 'z' in input.max
+  }
+
+  get is3D (): this extends AABB<Point3D> ? true : false {
+    return ('z' in this.min && 'z' in this.max) as this extends AABB<Point3D>
+      ? true
+      : false
+  }
+
+  center (): this extends AABB<Point3D> ? Point3D : Point2D {
+    if (AABB.is3D(this)) {
+      const result: Point3D = {
+        x: (this.min.x + this.max.x) / 2,
+        y: (this.min.y + this.max.y) / 2,
+        z: (this.min.z + this.max.z) / 2
+      }
+      return result as this extends AABB<Point3D> ? Point3D : Point2D
     } else {
+      const result: Point2D = {
+        x: (this.min.x + this.max.x) / 2,
+        y: (this.min.y + this.max.y) / 2
+      }
+      return result as this extends AABB<Point3D> ? Point3D : Point2D
+    }
+  }
+
+  // area, width * height for 2d, 2 * (xy + xz + yz) for 3d
+  area (): number {
+    if (AABB.is3D(this)) {
       return (
         2 *
         (this.width * this.height +
           this.width * this.depth +
           this.height * this.depth)
       )
+    } else {
+      return this.width * this.height
     }
   }
 
   // volume, 0 if 2D
-  get volume (): number {
-    if (this.is2D) {
-      return 0
+  get volume (): this extends AABB<Point3D> ? number : 0 {
+    if (AABB.is3D(this)) {
+      return (this.width *
+        this.height *
+        this.depth) as this extends AABB<Point3D> ? number : 0
     } else {
-      return this.width * this.height * this.depth
+      return 0
     }
   }
 
-  // factory
+  // ======================== factory ========================
   static from (min: Point2D, max: Point2D): AABB<Point2D>
   static from (min: Point3D, max: Point3D): AABB<Point3D>
   static from<P extends Point<boolean> = Point2D>(min: P, max: P): AABB<P> {
     return new AABB<P>(min, max)
   }
 
-  // other
+  // ======================== other ========================
   clone (): AABB<P> {
     return new AABB<P>(this.min, this.max)
   }

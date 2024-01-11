@@ -1,5 +1,12 @@
 import { describe, expectTypeOf, test } from 'vitest'
-import { AABB, type Point3D, type Point2D, type AABBType, AABB2D, AABB3D } from '..'
+import {
+  AABB,
+  AABB2D,
+  AABB3D,
+  type Point2D,
+  type Point3D,
+  type AABBType
+} from '..'
 
 describe('AABB type test', () => {
   describe('Class instantiation test', () => {
@@ -87,7 +94,10 @@ describe('AABB type test', () => {
 
     describe('AABB3D.from', () => {
       test('instantiation 3D AABB', () => {
-        const instance = AABB3D.from({ x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 2 })
+        const instance = AABB3D.from(
+          { x: 1, y: 1, z: 1 },
+          { x: 2, y: 2, z: 2 }
+        )
         expectTypeOf(instance).toEqualTypeOf<AABBType<Point3D>>()
         expectTypeOf(instance).not.toEqualTypeOf<AABBType<Point2D>>()
       })
@@ -96,6 +106,30 @@ describe('AABB type test', () => {
         // @ts-expect-error 2D AABB
         // eslint-disable-next-line no-new
         AABB3D.from({ x: 1, y: 1 }, { x: 2, y: 2 })
+      })
+    })
+  })
+
+  describe('AABB methods test', () => {
+    describe('AABB.is2D', () => {
+      test('returns true when 2D AABB', () => {
+        const instance = new AABB({ x: 1, y: 1 }, { x: 2, y: 2 })
+        expectTypeOf(instance.is2D).toEqualTypeOf<true>()
+      })
+
+      test('returns false when 3D AABB', () => {
+        const instance = new AABB({ x: 1, y: 1 }, { x: 2, y: 2 })
+        expectTypeOf(instance.is3D).toEqualTypeOf<false>()
+      })
+
+      test('returns false when 3D AABB', () => {
+        const instance = new AABB({ x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 2 })
+        expectTypeOf(instance.is3D).toEqualTypeOf<true>()
+      })
+
+      test('returns false when 3D AABB', () => {
+        const instance = new AABB({ x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 2 })
+        expectTypeOf(instance.is2D).toEqualTypeOf<false>()
       })
     })
   })
