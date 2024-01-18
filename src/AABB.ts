@@ -11,6 +11,10 @@ export type Point<Is3D extends boolean = false> = Is3D extends true
   ? Point3D
   : Point2D
 
+export type Ray<Is3D extends boolean = false> = Is3D extends true
+  ? { start: Point3D, end: Point3D }
+  : { start: Point2D, end: Point2D }
+
 class AABB<P extends Point<boolean> = Point2D> {
   min: P
   max: P
@@ -97,6 +101,83 @@ class AABB<P extends Point<boolean> = Point2D> {
     } else {
       return 0
     }
+  }
+
+  // ======================== collision detection ========================
+  // AABB-AABB collision detection
+  static collide (a: AABB<Point2D>, b: AABB<Point2D>): boolean
+  static collide (a: AABB<Point3D>, b: AABB<Point3D>): boolean
+  static collide<Shape extends AABB = AABB<Point2D>>(
+    a: Shape,
+    b: Shape
+  ): boolean {
+    // whether intersect on x axis
+    if (a.max.x < b.min.x || a.min.x > b.max.x) {
+      return false
+    }
+
+    // whether intersect on y axis
+    if (a.max.y < b.min.y || a.min.y > b.max.y) {
+      return false
+    }
+
+    // whether intersect on z axis
+    if (AABB.is3D(a) && AABB.is3D(b)) {
+      if (a.max.z < b.min.z || a.min.z > b.max.z) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  collide (
+    other: this extends AABB<Point2D> ? AABB<Point2D> : AABB<Point3D>
+  ): boolean {
+    // @ts-expect-error type derivation is ambiguous
+    return AABB.collide(this, other)
+  }
+
+  // ======================== contain ========================
+  contain (
+    AABB: this extends AABB<Point2D> ? AABB<Point2D> : AABB<Point3D>
+  ): boolean
+  contain (point: this extends AABB<Point2D> ? Point2D : Point3D): boolean
+  contain (
+    input:
+    | (this extends AABB<Point2D> ? AABB<Point2D> : AABB<Point3D>)
+    | (this extends AABB<Point2D> ? Point2D : Point3D)
+  ): boolean {
+    if (input instanceof AABB) {
+      if (
+        this.min.x >= input.min.x ||
+        this.min.y >= input.min.y ||
+        this.max.x <= input.max.x ||
+        this.max.y <= input.max.y
+      ) {
+        return false
+      }
+      if (AABB.is3D(this) && AABB.is3D(input)) {
+        if (this.min.z >= input.min.z || this.max.z <= input.max.z) {
+          return false
+        }
+      }
+    } else {
+      if (
+        this.min.x >= input.x &&
+        this.min.y >= input.y &&
+        this.max.x <= input.x &&
+        this.max.y <= input.y
+      ) {
+        return false
+      }
+      if (AABB.is3D(this) && 'z' in input) {
+        if (this.min.z <= input.z && this.max.z >= input.z) {
+          return false
+        }
+      }
+    }
+    return true
   }
 
   // ======================== factory ========================

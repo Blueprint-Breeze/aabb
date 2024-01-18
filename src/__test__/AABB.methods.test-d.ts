@@ -24,4 +24,18 @@ describe('AABB methods test', () => {
       expectTypeOf(instance.is3D).toEqualTypeOf<false>()
     })
   })
+
+  describe('AABB.collide', () => {
+    test('2D AABB collide should accept 2D AABB', () => {
+      const instance = new AABB({ x: 1, y: 1 }, { x: 2, y: 2 })
+      const instance2 = new AABB({ x: 1, y: 1 }, { x: 2, y: 2 })
+      expectTypeOf(instance.collide).toBeCallableWith(instance2)
+    })
+
+    test('3D AABB collide should accept 3D AABB', () => {
+      const instance = new AABB({ x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 2 })
+      const instance2 = new AABB({ x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 2 })
+      expectTypeOf(instance.collide).toBeCallableWith(instance2)
+    })
+  })
 })
