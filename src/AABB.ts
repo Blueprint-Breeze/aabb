@@ -11,10 +11,6 @@ export type Point<Is3D extends boolean = false> = Is3D extends true
   ? Point3D
   : Point2D
 
-export type Ray<Is3D extends boolean = false> = Is3D extends true
-  ? { start: Point3D, end: Point3D }
-  : { start: Point2D, end: Point2D }
-
 export const ENDPOINTS_3D = [
   'top-left-front',
   'top-right-front',
@@ -55,6 +51,10 @@ export type Edge3D = (typeof EDGE_3D)[number]
 export const EDGE_2D = ['top', 'bottom', 'left', 'right'] as const
 
 export type Edge2D = (typeof EDGE_2D)[number]
+
+export type Edge<Is3D extends boolean = false> = Is3D extends true
+  ? Edge3D
+  : Edge2D
 
 /**
  *  y
@@ -329,10 +329,7 @@ class AABB<P extends Point<boolean> = Point2D> {
     displacement: number
   ): this {
     if (AABB.is3D(this)) {
-      return this.__resizeFormEdge3D(
-        edge,
-        displacement
-      ) as unknown as this
+      return this.__resizeFormEdge3D(edge, displacement) as unknown as this
     }
     if (AABB.is2D(this)) {
       return this.__resizeFormEdge2D(
@@ -407,7 +404,9 @@ class AABB<P extends Point<boolean> = Point2D> {
     a: Shape,
     b: Shape
   ): boolean {
-    if (!a || !b) { throw new Error('Comparative items cannot be null or undefined') }
+    if (!a || !b) {
+      throw new Error('Comparative items cannot be null or undefined')
+    }
     // whether intersect on x axis
     if (a.max.x < b.min.x || a.min.x > b.max.x) {
       return false
@@ -445,7 +444,9 @@ class AABB<P extends Point<boolean> = Point2D> {
     | (this extends AABB<Point2D> ? AABB<Point2D> : AABB<Point3D>)
     | (this extends AABB<Point2D> ? Point2D : Point3D)
   ): boolean {
-    if (!input) { throw new Error('Comparative items cannot be null or undefined') }
+    if (!input) {
+      throw new Error('Comparative items cannot be null or undefined')
+    }
     if (input instanceof AABB) {
       if (
         this.min.x >= input.min.x ||

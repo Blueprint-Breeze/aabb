@@ -6,5 +6,15 @@ export {
   type AABBType,
   type Point,
   type Point2D,
-  type Point3D
+  type Point3D,
+  EDGE_2D,
+  EDGE_3D,
+  type Edge,
+  type Edge2D,
+  type Edge3D,
+  ENDPOINTS_2D,
+  ENDPOINTS_3D,
+  type Endpoint,
+  type Endpoint2D,
+  type Endpoint3D
 } from './AABB'
