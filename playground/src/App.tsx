@@ -1,7 +1,5 @@
-import type { Component } from "solid-js";
-
-const App: Component = () => {
-  return <span>AABB Playground</span>;
-};
+function App() {
+  return <>AABB Playground</>;
+}
 
 export default App;
