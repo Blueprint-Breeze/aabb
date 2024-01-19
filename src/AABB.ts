@@ -15,8 +15,62 @@ export type Ray<Is3D extends boolean = false> = Is3D extends true
   ? { start: Point3D, end: Point3D }
   : { start: Point2D, end: Point2D }
 
+export const ENDPOINTS_3D = [
+  'top-left-front',
+  'top-right-front',
+  'top-left-back',
+  'top-right-back',
+  'bottom-left-front',
+  'bottom-right-front',
+  'bottom-left-back',
+  'bottom-right-back'
+] as const
+
+export type Endpoint3D = (typeof ENDPOINTS_3D)[number]
+
+export const ENDPOINTS_2D = [
+  'top-left',
+  'top-right',
+  'bottom-left',
+  'bottom-right'
+] as const
+
+export type Endpoint2D = (typeof ENDPOINTS_2D)[number]
+
+export type Endpoint<Is3D extends boolean = false> = Is3D extends true
+  ? Endpoint3D
+  : Endpoint2D
+
+export const EDGE_3D = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'front',
+  'back'
+] as const
+
+export type Edge3D = (typeof EDGE_3D)[number]
+
+export const EDGE_2D = ['top', 'bottom', 'left', 'right'] as const
+
+export type Edge2D = (typeof EDGE_2D)[number]
+
+/**
+ *  y
+ *  ^    z
+ *  |   /
+ *  |  /
+ *  | /
+ *  |/
+ *  +-------------------> x
+ *
+ *  AABB(Axis-Aligned Bounding Box) is a box that is aligned with coordinate axis.
+ */
 class AABB<P extends Point<boolean> = Point2D> {
+  // the minimum point in each direction of the coordinate axis
   min: P
+  // the maximum point in each direction of the coordinate axis
   max: P
 
   constructor (min: Point2D, max: Point2D)
@@ -61,7 +115,7 @@ class AABB<P extends Point<boolean> = Point2D> {
       : false
   }
 
-  center (): this extends AABB<Point3D> ? Point3D : Point2D {
+  get center (): this extends AABB<Point3D> ? Point3D : Point2D {
     if (AABB.is3D(this)) {
       const result: Point3D = {
         x: (this.min.x + this.max.x) / 2,
@@ -103,6 +157,248 @@ class AABB<P extends Point<boolean> = Point2D> {
     }
   }
 
+  // ======================== move ========================
+  // move relative to center
+  translate (
+    vectors: this extends AABB<Point3D> ? Partial<Point3D> : Partial<Point2D>
+  ): this {
+    const { x = 0, y = 0 } = vectors
+    this.min.x += x
+    this.min.y += y
+    this.max.x += x
+    this.max.y += y
+    if (AABB.is3D(this)) {
+      const { z = 0 } = vectors as Point3D;
+      (this.min as Point3D).z += z;
+      (this.max as Point3D).z += z
+    }
+    return this
+  }
+
+  moveTo (newMinPoint: this extends AABB<Point3D> ? Point3D : Point2D): this {
+    if (AABB.is3D(this)) {
+      if (!('z' in newMinPoint)) {
+        throw new Error('newMinPoint must be 3D')
+      }
+      const { x, y, z } = newMinPoint
+      const displacement: Point3D = {
+        x: x - this.min.x,
+        y: y - this.min.y,
+        z: z - (this.min as Point3D).z
+      }
+      this.translate(displacement)
+    }
+    if (AABB.is2D(this)) {
+      if ('z' in newMinPoint) {
+        throw new Error('newMinPoint must be 2D')
+      }
+      const { x, y } = newMinPoint
+      const displacement: Point2D = {
+        x: x - this.min.x,
+        y: y - this.min.y
+      }
+      this.translate(displacement)
+    }
+    return this
+  }
+
+  // ======================== resize ========================
+  // scale from center
+  scale (
+    factors: this extends AABB<Point3D> ? Partial<Point3D> : Partial<Point2D>
+  ): this {
+    const { x = 1, y = 1 } = factors
+    const center = this.center
+    this.min.x = center.x + (this.min.x - center.x) * x
+    this.min.y = center.y + (this.min.y - center.y) * y
+    this.max.x = center.x + (this.max.x - center.x) * x
+    this.max.y = center.y + (this.max.y - center.y) * y
+    if (AABB.is3D(this) && 'z' in center) {
+      const { z = 1 } = factors as Point3D;
+      (this.min as Point3D).z = center.z + (this.min.z - center.z) * z;
+      (this.max as Point3D).z = center.z + (this.max.z - center.z) * z
+    }
+    return this
+  }
+
+  resizeFormEndpoint (
+    endpoint: this extends AABB<Point2D> ? Endpoint2D : Endpoint3D,
+    displacement: this extends AABB<Point2D> ? Point2D : Point3D
+  ): this {
+    if (AABB.is3D(this)) {
+      return this.__resizeFormEndpoint3D(
+        endpoint as Endpoint3D,
+        displacement as Point3D
+      ) as unknown as this
+    }
+    if (AABB.is2D(this)) {
+      return this.__resizeFormEndpoint2D(
+        endpoint as Endpoint2D,
+        displacement
+      ) as unknown as this
+    }
+    return this
+  }
+
+  __resizeFormEndpoint2D (
+    this: AABB<Point2D>,
+    endpoint: Endpoint2D,
+    displacement: Point2D
+  ): AABB<Point2D> {
+    if (!ENDPOINTS_2D.includes(endpoint)) {
+      throw new Error(`Endpoint "${endpoint}" is not supported for 2D AABB`)
+    }
+    const { x, y } = displacement
+    switch (endpoint) {
+      case 'top-left':
+        this.min.x = x
+        this.max.y = y
+        break
+      case 'top-right':
+        this.max.x = x
+        this.max.y = y
+        break
+      case 'bottom-left':
+        this.min.x = x
+        this.min.y = y
+        break
+      case 'bottom-right':
+        this.max.x = x
+        this.min.y = y
+        break
+    }
+    return this
+  }
+
+  __resizeFormEndpoint3D (
+    this: AABB<Point3D>,
+    endpoint: Endpoint3D,
+    displacement: Point3D
+  ): AABB<Point3D> {
+    if (!ENDPOINTS_3D.includes(endpoint)) {
+      throw new Error(`Endpoint "${endpoint}" is not supported for 3D AABB`)
+    }
+    const { x, y, z } = displacement
+    switch (endpoint) {
+      case 'top-left-front':
+        this.min.x = x
+        this.max.y = y
+        this.min.z = z
+        break
+      case 'top-right-front':
+        this.max.x = x
+        this.max.y = y
+        this.min.z = z
+        break
+      case 'top-left-back':
+        this.min.x = x
+        this.max.y = y
+        this.max.z = z
+        break
+      case 'top-right-back':
+        this.max.x = x
+        this.max.y = y
+        this.max.z = z
+        break
+      case 'bottom-left-front':
+        this.min.x = x
+        this.min.y = y
+        this.min.z = z
+        break
+      case 'bottom-right-front':
+        this.max.x = x
+        this.min.y = y
+        this.min.z = z
+        break
+      case 'bottom-left-back':
+        this.min.x = x
+        this.min.y = y
+        this.max.z = z
+        break
+      case 'bottom-right-back':
+        this.max.x = x
+        this.min.y = y
+        this.max.z = z
+        break
+    }
+    return this
+  }
+
+  resizeFormEdge (
+    edge: this extends AABB<Point2D> ? Edge2D : Edge3D,
+    displacement: number
+  ): this {
+    if (AABB.is3D(this)) {
+      return this.__resizeFormEdge3D(
+        edge,
+        displacement
+      ) as unknown as this
+    }
+    if (AABB.is2D(this)) {
+      return this.__resizeFormEdge2D(
+        edge as Edge2D,
+        displacement
+      ) as unknown as this
+    }
+    return this
+  }
+
+  __resizeFormEdge2D (
+    this: AABB<Point2D>,
+    edge: Edge2D,
+    displacement: number
+  ): AABB<Point2D> {
+    if (!EDGE_2D.includes(edge)) {
+      throw new Error(`Edge "${edge}" is not supported for 2D AABB`)
+    }
+    switch (edge) {
+      case 'top':
+        this.min.y = displacement
+        break
+      case 'bottom':
+        this.max.y = displacement
+        break
+      case 'left':
+        this.min.x = displacement
+        break
+      case 'right':
+        this.max.x = displacement
+        break
+    }
+    return this as unknown as AABB<Point2D>
+  }
+
+  __resizeFormEdge3D (
+    this: AABB<Point3D>,
+    edge: Edge3D,
+    displacement: number
+  ): AABB<Point3D> {
+    if (!EDGE_3D.includes(edge)) {
+      throw new Error(`Edge "${edge}" is not supported for 3D AABB`)
+    }
+    switch (edge) {
+      case 'top':
+        this.min.y = displacement
+        break
+      case 'bottom':
+        this.max.y = displacement
+        break
+      case 'left':
+        this.min.x = displacement
+        break
+      case 'right':
+        this.max.x = displacement
+        break
+      case 'front':
+        this.min.z = displacement
+        break
+      case 'back':
+        this.max.z = displacement
+        break
+    }
+    return this as unknown as AABB<Point3D>
+  }
+
   // ======================== collision detection ========================
   // AABB-AABB collision detection
   static collide (a: AABB<Point2D>, b: AABB<Point2D>): boolean
@@ -111,6 +407,7 @@ class AABB<P extends Point<boolean> = Point2D> {
     a: Shape,
     b: Shape
   ): boolean {
+    if (!a || !b) { throw new Error('Comparative items cannot be null or undefined') }
     // whether intersect on x axis
     if (a.max.x < b.min.x || a.min.x > b.max.x) {
       return false
@@ -148,6 +445,7 @@ class AABB<P extends Point<boolean> = Point2D> {
     | (this extends AABB<Point2D> ? AABB<Point2D> : AABB<Point3D>)
     | (this extends AABB<Point2D> ? Point2D : Point3D)
   ): boolean {
+    if (!input) { throw new Error('Comparative items cannot be null or undefined') }
     if (input instanceof AABB) {
       if (
         this.min.x >= input.min.x ||

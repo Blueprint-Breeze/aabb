@@ -24,6 +24,7 @@ module.exports = {
     project: ['./tsconfig.json']
   },
   rules: {
-    '@typescript-eslint/naming-convention': 'off'
+    '@typescript-eslint/naming-convention': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off'
   }
 }
