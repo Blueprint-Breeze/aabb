@@ -6,6 +6,10 @@ export default defineConfig({
   test: {
     coverage: {
       reportsDirectory: '.coverage'
+    },
+    include: ['src/**/*'],
+    typecheck: {
+      include: ['src/**/*']
     }
   },
   esbuild: {
